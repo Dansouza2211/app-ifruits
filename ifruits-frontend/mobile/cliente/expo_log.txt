@@ -1,0 +1,7 @@
+Starting project at /Users/danilochavesdesouza/Downloads/MCP_Figma/MCP_Figma_Ifruts/APP_IFRUTS/APP_IFRUTS/ifruits-frontend/mobile/cliente
+› Port 8081 is running this app in another window
+  /Users/danilochavesdesouza/Downloads/MCP_Figma/MCP_Figma_Ifruts/APP_IFRUTS/APP_IFRUTS/ifruits-frontend/mobile/cliente (pid 1430)
+Input is required, but 'npx expo' is in non-interactive mode.
+Required input:
+> Use port 8092 instead?
+› Skipping dev server
