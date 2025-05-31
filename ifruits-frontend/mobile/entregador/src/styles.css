@@ -1,0 +1,21 @@
+/* Arquivo CSS vazio para NativeWind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos específicos para componentes */
+.card {
+  @apply bg-white rounded-lg shadow-sm p-4;
+}
+
+.header {
+  @apply bg-primary px-4 pt-4 pb-4;
+}
+
+.title {
+  @apply text-white text-xl font-bold;
+}
+
+.subtitle {
+  @apply text-white text-sm;
+} 

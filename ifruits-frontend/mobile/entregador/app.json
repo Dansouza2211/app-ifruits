@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "iFruits Entregador",
+    "slug": "ifruits-entregador",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#41B54A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ifruits.entregador"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#41B54A"
+      },
+      "package": "com.ifruits.entregador"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+} 

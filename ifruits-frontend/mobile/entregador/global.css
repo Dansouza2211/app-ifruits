@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos globais personalizados */
+body {
+  font-family: 'Inter', sans-serif;
+  @apply bg-gray-100;
+}
+
+.primary-button {
+  @apply bg-primary text-white font-bold py-3 px-4 rounded-md;
+}
+
+.secondary-button {
+  @apply border border-gray-300 py-3 px-4 rounded-md;
+}
+
+.input-field {
+  @apply border border-gray-300 rounded-md px-4 py-3 text-gray-800;
+}
+
+.bg-primary {
+  background-color: #41B54A;
+}
+
+.text-primary {
+  color: #41B54A;
+}
+
+.border-primary {
+  border-color: #41B54A;
+}
+
+.bg-secondary {
+  background-color: #34A853;
+}
+
+.text-secondary {
+  color: #34A853;
+}
+
+.border-secondary {
+  border-color: #34A853;
+} 
