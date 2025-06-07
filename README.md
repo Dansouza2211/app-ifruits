@@ -1,5 +1,14 @@
 # Ifruits - Sistema Completo de Delivery
 
+## Integrantes
+ - Danilo Chaves de Souza
+ - João Victor Evangelista Lopes Ribeiro
+ - Leandro Bezerra
+ - Lucas Daniel Santana Oliveira
+ - Mateus de Oliveira Rodrigues
+ - Rafael Arruda Queiroz
+ - Marcus Vinicius
+
 ## 📱 Visão Geral
 
 O Ifruits é um sistema completo de delivery composto por aplicativos mobile para clientes e entregadores, além de painéis administrativos web para lojistas e administradores gerais.
