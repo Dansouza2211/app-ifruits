@@ -20,7 +20,7 @@ LogBox.ignoreLogs([
 // Adicionando logs para debug
 console.log('App inicializado');
 
-export default function App() {
+const App: React.FC = () => {
   console.log('Renderizando App');
   return (
     <ModalProvider>
@@ -31,10 +31,12 @@ export default function App() {
       </CartProvider>
     </ModalProvider>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
 });
+
+export default App;
