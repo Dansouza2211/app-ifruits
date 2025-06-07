@@ -7,6 +7,7 @@
  - Lucas Daniel Santana Oliveira
  - Mateus de Oliveira Rodrigues
  - Rafael Arruda Queiroz
+ - Marcus Vinicius
 
 ## 📱 Visão Geral
 
