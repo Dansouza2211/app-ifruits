@@ -16,7 +16,7 @@ LogBox.ignoreLogs([
   "Require cycle"
 ]);
 
-export default function App() {
+const App: React.FC = () => {
   return (
     // ProfileProvider gerencia autenticação e dados do usuário
     <ProfileProvider>
@@ -30,4 +30,6 @@ export default function App() {
       </ModalProvider>
     </ProfileProvider>
   );
-} 
+};
+
+export default App; 

@@ -1,13 +1,43 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
-const AuthContext = createContext();
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  storeId: string;
+  storeName: string;
+  avatar: string;
+}
 
-export const useAuth = () => useContext(AuthContext);
+interface AuthContextType {
+  currentUser: User | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+  register: (userData: { email: string; storeName: string; password: string }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  logout: () => void;
+  loading: boolean;
+  error: string | null;
+  updateUserData: (newData: Partial<User>) => void;
+}
 
-export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Verificar se o usuário já está logado quando a aplicação carrega
@@ -24,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Função de login
-  const login = async (email, password) => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
     setLoading(true);
     setError(null);
     
@@ -33,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('ifruits-partner-user');
       
       // Aceitar qualquer credencial neste momento
-      const userData = {
+      const userData: User = {
         id: 'partner-001',
         name: 'Hortifruti Express',
         email: email || 'demo@ifruits.com',
@@ -47,16 +77,17 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('ifruits-partner-user', JSON.stringify(userData));
       setCurrentUser(userData);
       return { success: true, user: userData };
-    } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
+    } catch (err: any) {
+      const errorMessage = err.message || 'Ocorreu um erro durante o login';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
   };
 
   // Função de cadastro
-  const register = async (userData) => {
+  const register = async (userData: { email: string; storeName: string; password: string }): Promise<{ success: boolean; user?: User; error?: string }> => {
     setLoading(true);
     setError(null);
     
@@ -65,7 +96,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('ifruits-partner-user');
       
       // Simular registro (isso seria uma chamada de API real)
-      const newUser = {
+      const newUser: User = {
         id: `partner-${Math.floor(Math.random() * 1000)}`,
         name: userData.storeName,
         email: userData.email,
@@ -79,22 +110,23 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('ifruits-partner-user', JSON.stringify(newUser));
       setCurrentUser(newUser);
       return { success: true, user: newUser };
-    } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
+    } catch (err: any) {
+      const errorMessage = err.message || 'Ocorreu um erro durante o cadastro';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
   };
 
   // Função de logout
-  const logout = () => {
+  const logout = (): void => {
     localStorage.removeItem('ifruits-partner-user');
     setCurrentUser(null);
   };
 
   // Função para atualizar dados do usuário
-  const updateUserData = (newData) => {
+  const updateUserData = (newData: Partial<User>): void => {
     if (currentUser) {
       const updatedUser = { ...currentUser, ...newData };
       localStorage.setItem('ifruits-partner-user', JSON.stringify(updatedUser));
@@ -102,7 +134,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     currentUser,
     login,
     register,

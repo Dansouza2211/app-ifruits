@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, ReactNode } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
@@ -23,8 +23,12 @@ import MessagesPage from './pages/dashboard/MessagesPage';
 import ReviewsPage from './pages/dashboard/ReviewsPage';
 import FeedPage from './pages/dashboard/FeedPage';
 
+interface RouteProps {
+  children: ReactNode;
+}
+
 // Componente para rotas protegidas
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute: React.FC<RouteProps> = ({ children }) => {
   const { currentUser, loading } = useAuth();
   
   if (loading) {
@@ -39,11 +43,11 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
   
-  return children;
+  return <>{children}</>;
 };
 
 // Componente para redirecionar usuários logados
-const RedirectIfAuthenticated = ({ children }) => {
+const RedirectIfAuthenticated: React.FC<RouteProps> = ({ children }) => {
   const { currentUser, loading } = useAuth();
   
   if (loading) {
@@ -58,10 +62,10 @@ const RedirectIfAuthenticated = ({ children }) => {
     return <Navigate to="/dashboard" replace />;
   }
   
-  return children;
+  return <>{children}</>;
 };
 
-function App() {
+function App(): JSX.Element {
   const location = useLocation();
   
   // Scroll para o topo quando mudar de rota
