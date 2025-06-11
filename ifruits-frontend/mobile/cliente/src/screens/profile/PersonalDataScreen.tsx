@@ -30,7 +30,7 @@ const InfoField = ({ label, value, editable = true, icon, onEdit, masked = false
 
 
   return (
-    <Animated.View 
+    <Animated.View
       entering={FadeInUp.delay(200).duration(400)}
       className="bg-white rounded-xl mb-4 overflow-hidden"
     >
@@ -41,9 +41,9 @@ const InfoField = ({ label, value, editable = true, icon, onEdit, masked = false
             {icon && <Icon name={icon} size={18} color="#41B54A" className="mr-2" />}
             <Text className="text-base text-gray-800 font-medium">{displayValue}</Text>
           </View>
-          
+
           {editable && (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={onEdit}
               className="bg-gray-100 rounded-full p-1.5"
             >
@@ -66,7 +66,7 @@ const EditModal = ({ visible, onClose, title, children, onSave }) => {
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/50 justify-center items-center p-4">
-        <Animated.View 
+        <Animated.View
           entering={ZoomIn.duration(300)}
           className="bg-white rounded-xl w-full max-w-sm shadow-xl overflow-hidden"
         >
@@ -77,11 +77,11 @@ const EditModal = ({ visible, onClose, title, children, onSave }) => {
             <Text className="text-lg font-bold text-gray-800">{title}</Text>
             <View style={{ width: 24 }} />
           </View>
-          
+
           <View className="p-4">
             {children}
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               className="bg-green-500 py-3 rounded-xl mt-2"
               onPress={onSave}
             >
@@ -104,38 +104,38 @@ const ConfirmationModal = ({ visible, onClose, onConfirm, title, message, confir
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/50 justify-center items-center p-5">
-        <Animated.View 
+        <Animated.View
           entering={ZoomIn.duration(300)}
           className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden"
         >
           <View className="p-5">
             {/* Título */}
             <Text className="text-xl font-bold text-gray-800 text-center mb-2">{title}</Text>
-            
+
             {/* Ícone de alerta */}
             <View className="items-center my-3">
               <View className={`w-16 h-16 ${destructive ? 'bg-red-100' : 'bg-green-100'} rounded-full items-center justify-center`}>
-                <Icon 
-                  name={destructive ? "alert-circle-outline" : "check-circle-outline"} 
-                  size={32} 
-                  color={destructive ? "#FF5757" : "#41B54A"} 
+                <Icon
+                  name={destructive ? "alert-circle-outline" : "check-circle-outline"}
+                  size={32}
+                  color={destructive ? "#FF5757" : "#41B54A"}
                 />
               </View>
             </View>
-            
+
             {/* Mensagem */}
             <Text className="text-gray-600 text-center mb-6">{message}</Text>
-            
+
             {/* Botões */}
             <View className="flex-row items-center justify-between gap-3 mt-2">
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={onClose}
                 className="flex-1 py-3 border border-gray-300 rounded-xl"
               >
                 <Text className="text-gray-700 font-semibold text-center">{cancelText}</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 onPress={onConfirm}
                 className={`flex-1 py-3 ${destructive ? 'bg-red-500' : 'bg-green-500'} rounded-xl`}
               >
@@ -162,7 +162,7 @@ const Section = ({ title, children }) => {
 export default function PersonalDataScreen({ navigation }) {
   console.log('Renderizando tela de dados pessoais');
   const insets = useSafeAreaInsets();
-  
+
   // Estados para modais
   const [editingField, setEditingField] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -171,7 +171,7 @@ export default function PersonalDataScreen({ navigation }) {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [twoFactorModalVisible, setTwoFactorModalVisible] = useState(false);
   const [photoModalVisible, setPhotoModalVisible] = useState(false);
-  
+
   // Estados para valores temporários no modal
   const [tempValue, setTempValue] = useState('');
   const [tempValues, setTempValues] = useState({
@@ -179,7 +179,7 @@ export default function PersonalDataScreen({ navigation }) {
     newPassword: '',
     confirmPassword: ''
   });
-  
+
   // Estado para dados do usuário
   const [userData, setUserData] = useState<any>({
     name: '',
@@ -187,15 +187,15 @@ export default function PersonalDataScreen({ navigation }) {
     email: '',
     phone: '',
     birthDate: '',
-    gender: 'Masculino',
+    gender: '',
     profileColor: '#41B54A',
     hasCustomPhoto: false
   });
 
   const fetchData = async () => {
-    const{ data, error } = await supabase.from('usuarios').select("*");
-
-    if(error){
+    const { data, error } = await supabase.from('usuarios').select("*");
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (error) {
       console.log("Erro ao carregar dados do usuário: ", error.message);
       return;
     }
@@ -205,14 +205,14 @@ export default function PersonalDataScreen({ navigation }) {
         ...prev,
         name: data[0].nome,
         cpf: data[0].cpf,
-        email: 'teste@gmail.com',
+        email: authData.user?.email,
         phone: data[0].telefone,
         birthDate: data[0].data_nascimento
       }))
     }
   };
 
-  useEffect(() =>{
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -221,15 +221,15 @@ export default function PersonalDataScreen({ navigation }) {
     console.log('Voltando da tela de dados pessoais');
     navigation.goBack();
   };
-  
+
   // Função para fazer logout
   const handleLogout = async () => {
     try {
       // Remover o token de autenticação
       await AsyncStorage.removeItem('@ifruits:userToken');
-      
+
       console.log('Logout realizado com sucesso');
-      
+
       // Navegar para a tela de login
       navigation.reset({
         index: 0,
@@ -240,24 +240,66 @@ export default function PersonalDataScreen({ navigation }) {
       alert('Erro ao fazer logout. Tente novamente.');
     }
   };
-  
+
   // Função para abrir o modal de edição
   const handleEdit = (field) => {
     setEditingField(field);
     setTempValue(userData[field]);
     setModalVisible(true);
   };
-  
+
   // Função para salvar as alterações
-  const handleSave = () => {
-    setUserData({
-      ...userData,
-      [editingField]: tempValue
-    });
-    setModalVisible(false);
-    setEditingField(null);
+  const handleSave = async () => {
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !authData.user) {
+        console.error("Erro ao obter usuário autenticado:", authError?.message);
+        Alert.alert("Erro", "Usuário não autenticado");
+        return;
+      }
+
+      const userId = authData.user.id;
+
+      const fieldMap = {
+        name: 'nome',
+        cpf: 'cpf',
+        email: 'email',
+        phone: 'telefone',
+        birthDate: 'data_nascimento',
+        gender: 'genero'
+      }
+
+      const supabaseField = fieldMap[editingField];
+
+      if(supabaseField == 'email'){
+        const { error } = await supabase.auth.updateUser({[supabaseField]: tempValue});
+        if(error){ console.error("Erro ao atualizar email", error)}
+        return;
+      }
+
+      const { error } = await supabase.from("usuarios").update({ [supabaseField]: tempValue }).eq('id', userId);
+
+      if (error) {
+        console.error("Erro ao atualizar dados no Supabase: ", error.message);
+        Alert.alert("Erro", "Não foi possível salvar as alterações");
+        return;
+      }
+
+      // Atualiza o estado local
+      setUserData((prev) => ({
+        ...prev,
+        [editingField]: tempValue,
+      }));
+
+      setModalVisible(false);
+      setEditingField(null);
+    } catch(error){
+      console.error("Erro ao salvar as alterações", error);
+      Alert.alert("Error", "Ocorreu um erro ao sallvar as alterações");
+    }
   };
-  
+
   // Função para alterar a senha
   const handleChangePassword = () => {
     // Validar se as senhas foram preenchidas
@@ -265,28 +307,28 @@ export default function PersonalDataScreen({ navigation }) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos');
       return;
     }
-    
+
     // Validar se a nova senha tem pelo menos 6 caracteres
     if (tempValues.newPassword.length < 6) {
       Alert.alert('Erro', 'A nova senha deve ter pelo menos 6 caracteres');
       return;
     }
-    
+
     // Validar se as senhas coincidem
     if (tempValues.newPassword !== tempValues.confirmPassword) {
       Alert.alert('Erro', 'As senhas não coincidem');
       return;
     }
-    
+
     // Comentando a validação da senha atual durante o desenvolvimento
     // if (tempValues.currentPassword !== '123456') {
     //   Alert.alert('Erro', 'Senha atual incorreta');
     //   return;
     // }
-    
+
     // Fechar o modal de senha
     setPasswordModalVisible(false);
-    
+
     // Resetar os campos
     setTempValues({
       ...tempValues,
@@ -294,23 +336,23 @@ export default function PersonalDataScreen({ navigation }) {
       newPassword: '',
       confirmPassword: ''
     });
-    
+
     // Navegar para a tela de verificação de e-mail
     navigation.navigate('EmailVerification', {
       email: userData.email,
       fromScreen: 'PersonalData',
       redirectTo: 'PersonalData'
     });
-    
+
     // Exibir mensagem de sucesso
     // Alert.alert('Sucesso', 'Senha alterada com sucesso');
   };
-  
+
   // Função para alterar foto
   const handleChangePhoto = () => {
     setPhotoModalVisible(true);
   };
-  
+
   // Função para selecionar uma cor de perfil
   const handleSelectColor = (color) => {
     setUserData({
@@ -320,7 +362,7 @@ export default function PersonalDataScreen({ navigation }) {
     });
     setPhotoModalVisible(false);
   };
-  
+
   // Função para simular upload de foto
   const handleUploadPhoto = () => {
     // Simulação de upload bem-sucedido
@@ -331,7 +373,7 @@ export default function PersonalDataScreen({ navigation }) {
     setPhotoModalVisible(false);
     Alert.alert('Sucesso', 'Foto alterada com sucesso!');
   };
-  
+
   // Cores disponíveis para o perfil
   const profileColors = [
     '#41B54A', // Verde (padrão)
@@ -341,7 +383,7 @@ export default function PersonalDataScreen({ navigation }) {
     '#f39c12', // Laranja
     '#1abc9c'  // Turquesa
   ];
-  
+
   // Função para ativar/desativar autenticação em 2 fatores
   const handleToggleTwoFactor = () => {
     if (!twoFactorEnabled) {
@@ -351,19 +393,19 @@ export default function PersonalDataScreen({ navigation }) {
       Alert.alert('Autenticação em 2 fatores desativada');
     }
   };
-  
+
   // Função para confirmar a ativação da autenticação em 2 fatores
   const confirmTwoFactor = () => {
     setTwoFactorEnabled(true);
     setTwoFactorModalVisible(false);
     Alert.alert('Sucesso', 'Autenticação em 2 fatores ativada com sucesso!');
   };
-  
+
   // Função para excluir a conta
   const handleDeleteAccount = () => {
     setDeleteAccountModalVisible(true);
   };
-  
+
   // Função para confirmar a exclusão da conta
   const confirmDeleteAccount = () => {
     // Aqui seria a lógica para excluir a conta
@@ -371,10 +413,10 @@ export default function PersonalDataScreen({ navigation }) {
     setDeleteAccountModalVisible(false);
     navigation.navigate('Login'); // Navegar para a tela de login ou outra tela adequada
   };
-  
+
   // Função para renderizar o título do modal com base no campo sendo editado
   const getModalTitle = () => {
-    switch(editingField) {
+    switch (editingField) {
       case 'name': return 'Editar Nome';
       case 'cpf': return 'Editar CPF';
       case 'email': return 'Editar E-mail';
@@ -384,13 +426,13 @@ export default function PersonalDataScreen({ navigation }) {
       default: return 'Editar';
     }
   };
-  
+
   // Função para renderizar os campos do modal com base no campo sendo editado
   const renderModalContent = () => {
-    switch(editingField) {
+    switch (editingField) {
       case 'name':
         return (
-          <FormField 
+          <FormField
             label="Nome completo"
             value={tempValue}
             onChangeText={setTempValue}
@@ -399,7 +441,7 @@ export default function PersonalDataScreen({ navigation }) {
         );
       case 'cpf':
         return (
-          <FormField 
+          <FormField
             label="CPF"
             value={tempValue}
             onChangeText={setTempValue}
@@ -409,7 +451,7 @@ export default function PersonalDataScreen({ navigation }) {
         );
       case 'email':
         return (
-          <FormField 
+          <FormField
             label="E-mail"
             value={tempValue}
             onChangeText={setTempValue}
@@ -419,7 +461,7 @@ export default function PersonalDataScreen({ navigation }) {
         );
       case 'phone':
         return (
-          <FormField 
+          <FormField
             label="Telefone"
             value={tempValue}
             onChangeText={setTempValue}
@@ -429,7 +471,7 @@ export default function PersonalDataScreen({ navigation }) {
         );
       case 'birthDate':
         return (
-          <FormField 
+          <FormField
             label="Data de nascimento"
             value={tempValue}
             onChangeText={setTempValue}
@@ -441,20 +483,20 @@ export default function PersonalDataScreen({ navigation }) {
           <View>
             <Text className="text-sm text-gray-500 mb-2">Gênero</Text>
             <View className="flex-row gap-2 mb-3">
-              <TouchableOpacity 
+              <TouchableOpacity
                 className={`flex-1 py-3 rounded-lg border ${tempValue === 'Masculino' ? 'bg-green-100 border-green-500' : 'border-gray-300'}`}
                 onPress={() => setTempValue('Masculino')}
               >
                 <Text className={`text-center ${tempValue === 'Masculino' ? 'text-green-700 font-medium' : 'text-gray-700'}`}>Masculino</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 className={`flex-1 py-3 rounded-lg border ${tempValue === 'Feminino' ? 'bg-green-100 border-green-500' : 'border-gray-300'}`}
                 onPress={() => setTempValue('Feminino')}
               >
                 <Text className={`text-center ${tempValue === 'Feminino' ? 'text-green-700 font-medium' : 'text-gray-700'}`}>Feminino</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               className={`py-3 rounded-lg border ${tempValue === 'Outro' ? 'bg-green-100 border-green-500' : 'border-gray-300'}`}
               onPress={() => setTempValue('Outro')}
             >
@@ -469,19 +511,19 @@ export default function PersonalDataScreen({ navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['right', 'left']}>
-      <Header 
+      <Header
         title="Meus Dados"
         showBack={true}
         onBackPress={handleGoBack}
         showMenu={true}
       />
-      
+
       {/* Logout Button */}
       <Animated.View
         entering={FadeInDown.duration(400)}
         className="px-4 pt-4"
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           className="p-3 border border-red-500 rounded-lg flex-row justify-center items-center"
           onPress={handleLogout}
         >
@@ -489,27 +531,27 @@ export default function PersonalDataScreen({ navigation }) {
           <Text className="ml-2 text-red-500 font-medium">Sair da conta</Text>
         </TouchableOpacity>
       </Animated.View>
-      
+
       {/* Content */}
-      <ScrollView 
+      <ScrollView
         className="flex-1 px-4 pt-6"
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Picture Section */}
-        <Animated.View 
+        <Animated.View
           entering={FadeInUp.duration(400)}
           className="items-center mb-8"
         >
           {userData.hasCustomPhoto ? (
             <View className="w-24 h-24 bg-green-100 rounded-full items-center justify-center mb-2 overflow-hidden">
-              <Image 
+              <Image
                 source={require('../../assets/images/hortifruti-terra.png')}
                 className="w-24 h-24"
                 resizeMode="cover"
               />
             </View>
           ) : (
-            <View 
+            <View
               className="w-24 h-24 rounded-full items-center justify-center mb-2"
               style={{ backgroundColor: userData.profileColor }}
             >
@@ -518,14 +560,14 @@ export default function PersonalDataScreen({ navigation }) {
               </Text>
             </View>
           )}
-          <TouchableOpacity 
+          <TouchableOpacity
             className="bg-gray-50 px-4 py-2 rounded-full border border-gray-200"
             onPress={handleChangePhoto}
           >
             <Text className="text-green-600 font-medium">Alterar foto</Text>
           </TouchableOpacity>
         </Animated.View>
-        
+
         {/* Personal Info Section */}
         <Section title="Informações pessoais">
           <InfoField
@@ -534,7 +576,7 @@ export default function PersonalDataScreen({ navigation }) {
             icon="account"
             onEdit={() => handleEdit('name')}
           />
-          
+
           <InfoField
             label="CPF"
             value={userData.cpf}
@@ -542,14 +584,14 @@ export default function PersonalDataScreen({ navigation }) {
             masked={true}
             onEdit={() => handleEdit('cpf')}
           />
-          
+
           <InfoField
             label="Data de nascimento"
             value={userData.birthDate}
             icon="calendar"
             onEdit={() => handleEdit('birthDate')}
           />
-          
+
           <InfoField
             label="Gênero"
             value={userData.gender}
@@ -557,7 +599,7 @@ export default function PersonalDataScreen({ navigation }) {
             onEdit={() => handleEdit('gender')}
           />
         </Section>
-        
+
         {/* Contact Info Section */}
         <Section title="Informações de contato">
           <InfoField
@@ -566,7 +608,7 @@ export default function PersonalDataScreen({ navigation }) {
             icon="email"
             onEdit={() => handleEdit('email')}
           />
-          
+
           <InfoField
             label="Telefone"
             value={userData.phone}
@@ -574,10 +616,10 @@ export default function PersonalDataScreen({ navigation }) {
             onEdit={() => handleEdit('phone')}
           />
         </Section>
-        
+
         {/* Security Section */}
         <Section title="Segurança">
-          <TouchableOpacity 
+          <TouchableOpacity
             className="bg-white rounded-xl p-4 flex-row items-center justify-between mb-4"
             onPress={() => setPasswordModalVisible(true)}
           >
@@ -587,8 +629,8 @@ export default function PersonalDataScreen({ navigation }) {
             </View>
             <Icon name="chevron-right" size={20} color="#999" />
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             className="bg-white rounded-xl p-4 flex-row items-center justify-between"
             onPress={handleToggleTwoFactor}
           >
@@ -600,7 +642,7 @@ export default function PersonalDataScreen({ navigation }) {
               <Text className={`mr-2 ${twoFactorEnabled ? 'text-green-500' : 'text-gray-400'}`}>
                 {twoFactorEnabled ? 'Ativado' : 'Ativar'}
               </Text>
-              <Switch 
+              <Switch
                 value={twoFactorEnabled}
                 onValueChange={handleToggleTwoFactor}
                 trackColor={{ false: '#e0e0e0', true: '#a7e9af' }}
@@ -609,19 +651,19 @@ export default function PersonalDataScreen({ navigation }) {
             </View>
           </TouchableOpacity>
         </Section>
-        
+
         {/* Delete Account Section */}
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-row items-center justify-center py-6"
           onPress={handleDeleteAccount}
         >
           <Icon name="delete" size={16} color="#FF5757" />
           <Text className="text-red-500 ml-2">Excluir minha conta</Text>
         </TouchableOpacity>
-        
+
         <View className="h-20" />
       </ScrollView>
-      
+
       {/* Modal de edição de campo */}
       <EditModal
         visible={modalVisible}
@@ -631,7 +673,7 @@ export default function PersonalDataScreen({ navigation }) {
       >
         {renderModalContent()}
       </EditModal>
-      
+
       {/* Modal de alteração de senha */}
       <EditModal
         visible={passwordModalVisible}
@@ -639,29 +681,29 @@ export default function PersonalDataScreen({ navigation }) {
         title="Alterar senha"
         onSave={handleChangePassword}
       >
-        <FormField 
+        <FormField
           label="Senha atual"
           value={tempValues.currentPassword}
-          onChangeText={(text) => setTempValues({...tempValues, currentPassword: text})}
+          onChangeText={(text) => setTempValues({ ...tempValues, currentPassword: text })}
           secureTextEntry={true}
           placeholder="Digite sua senha atual"
         />
-        <FormField 
+        <FormField
           label="Nova senha"
           value={tempValues.newPassword}
-          onChangeText={(text) => setTempValues({...tempValues, newPassword: text})}
+          onChangeText={(text) => setTempValues({ ...tempValues, newPassword: text })}
           secureTextEntry={true}
           placeholder="Digite sua nova senha"
         />
-        <FormField 
+        <FormField
           label="Confirmar nova senha"
           value={tempValues.confirmPassword}
-          onChangeText={(text) => setTempValues({...tempValues, confirmPassword: text})}
+          onChangeText={(text) => setTempValues({ ...tempValues, confirmPassword: text })}
           secureTextEntry={true}
           placeholder="Digite novamente sua nova senha"
         />
       </EditModal>
-      
+
       {/* Modal de confirmação de exclusão de conta */}
       <ConfirmationModal
         visible={deleteAccountModalVisible}
@@ -673,7 +715,7 @@ export default function PersonalDataScreen({ navigation }) {
         cancelText="CANCELAR"
         destructive={true}
       />
-      
+
       {/* Modal de confirmação de autenticação em 2 fatores */}
       <ConfirmationModal
         visible={twoFactorModalVisible}
@@ -685,7 +727,7 @@ export default function PersonalDataScreen({ navigation }) {
         cancelText="CANCELAR"
         destructive={false}
       />
-      
+
       {/* Photo selection Modal */}
       <Modal
         visible={photoModalVisible}
@@ -694,7 +736,7 @@ export default function PersonalDataScreen({ navigation }) {
         onRequestClose={() => setPhotoModalVisible(false)}
       >
         <View className="flex-1 bg-black/50 justify-center items-center p-4">
-          <Animated.View 
+          <Animated.View
             entering={ZoomIn.duration(300)}
             className="bg-white rounded-xl w-full max-w-sm shadow-xl overflow-hidden"
           >
@@ -705,15 +747,15 @@ export default function PersonalDataScreen({ navigation }) {
               <Text className="text-lg font-bold text-gray-800">Alterar foto</Text>
               <View style={{ width: 24 }} />
             </View>
-            
+
             <View className="p-4">
               <Text className="text-gray-500 mb-4">Escolha uma cor para seu avatar ou faça o upload de uma foto</Text>
-              
+
               {/* Color selection */}
               <Text className="text-sm text-gray-500 mb-2">Selecione uma cor</Text>
               <View className="flex-row flex-wrap justify-between mb-4">
                 {profileColors.map((color, index) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={index}
                     className="w-12 h-12 rounded-full mb-2 items-center justify-center"
                     style={{ backgroundColor: color }}
@@ -725,17 +767,17 @@ export default function PersonalDataScreen({ navigation }) {
                   </TouchableOpacity>
                 ))}
               </View>
-              
+
               {/* Upload photo button */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 className="bg-gray-100 py-3 rounded-xl mb-2 flex-row items-center justify-center"
                 onPress={handleUploadPhoto}
               >
                 <Icon name="camera" size={20} color="#41B54A" />
                 <Text className="ml-2 text-gray-800 font-medium">Escolher da galeria</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 className="bg-gray-100 py-3 rounded-xl flex-row items-center justify-center"
                 onPress={handleUploadPhoto}
               >
