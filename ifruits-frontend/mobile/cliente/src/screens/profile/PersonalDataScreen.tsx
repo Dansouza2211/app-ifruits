@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, Alert, Image, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInUp, FadeInDown, ZoomIn } from 'react-native-reanimated';
 import Header from '../../components/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from 'utils/supabase';
 
 // Componente de campo de modal
 const FormField = ({ label, value, onChangeText, keyboardType = 'default', secureTextEntry = false, placeholder }) => (
@@ -25,7 +26,8 @@ const FormField = ({ label, value, onChangeText, keyboardType = 'default', secur
 // Componente de campo de informação
 const InfoField = ({ label, value, editable = true, icon, onEdit, masked = false }) => {
   // Função para mascarar valores sensíveis
-  const displayValue = masked ? value.replace(/./g, '•') : value;
+  const displayValue = masked ? (value ? value.replace(/./g, '•') : '') : value;
+
 
   return (
     <Animated.View 
@@ -179,16 +181,40 @@ export default function PersonalDataScreen({ navigation }) {
   });
   
   // Estado para dados do usuário
-  const [userData, setUserData] = useState({
-    name: 'Rafael Arruda',
-    cpf: 'xxx.xxx.xxx-xx',
-    email: 'rafaelarruda123@gmail.com',
-    phone: '(xx) xxxxx-xxxx',
-    birthDate: 'xx/xx/xxxx',
+  const [userData, setUserData] = useState<any>({
+    name: '',
+    cpf: '',
+    email: '',
+    phone: '',
+    birthDate: '',
     gender: 'Masculino',
     profileColor: '#41B54A',
     hasCustomPhoto: false
   });
+
+  const fetchData = async () => {
+    const{ data, error } = await supabase.from('usuarios').select("*");
+
+    if(error){
+      console.log("Erro ao carregar dados do usuário: ", error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      setUserData((prev: any) => ({
+        ...prev,
+        name: data[0].nome,
+        cpf: data[0].cpf,
+        email: 'teste@gmail.com',
+        phone: data[0].telefone,
+        birthDate: data[0].data_nascimento
+      }))
+    }
+  };
+
+  useEffect(() =>{
+    fetchData();
+  }, []);
 
   // Função para voltar
   const handleGoBack = () => {

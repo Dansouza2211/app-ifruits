@@ -49,12 +49,12 @@ export default function RegisterScreen({ navigation }) {
       // Simulando cadastro
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
 
-      const { user } = signUpData;
+      const { user } = data;
 
-      if (signUpError) {
-        console.error(signUpError);
+      if (error) {
+        console.error("Erro ao registrar: ", error);
         return;
       }
 
@@ -74,11 +74,13 @@ export default function RegisterScreen({ navigation }) {
       }
 
       // Simulando um token de autenticação
-      const userToken = 'fake-auth-token-' + Date.now();
+      const userToken = data.session?.access_token;
 
-      // Salvando o token no AsyncStorage
-      await AsyncStorage.setItem('@ifruits:userToken', userToken);
-
+      if(userToken){
+        // Salvando o token no AsyncStorage
+        await AsyncStorage.setItem('@ifruits:userToken', userToken);
+      }
+      
       // Navegar para a tela de verificação de e-mail
       navigation.navigate('EmailVerification', {
         email: email,
