@@ -17,6 +17,7 @@ import Button from '../../components/ui/Button';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from 'utils/supabase';
 
 export default function EmailVerificationScreen({ navigation, route }) {
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
@@ -79,41 +80,45 @@ export default function EmailVerificationScreen({ navigation, route }) {
 
   // Verificar código
   const handleVerifyCode = async () => {
-    const code = verificationCode.join('');
-    
-    if (code.length !== 6) {
-      Alert.alert('Código incompleto', 'Por favor, digite o código de 6 dígitos enviado ao seu e-mail.');
+  const code = verificationCode.join('');
+
+  if (code.length !== 6) {
+    Alert.alert('Código incompleto', 'Por favor, digite o código de 6 dígitos enviado ao seu e-mail.');
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: 'email'
+    });
+
+    if (error) {
+      console.error('Erro ao verificar código:', error);
+      Alert.alert('Código inválido', 'O código digitado não é válido ou expirou. Tente novamente.');
+      setVerificationCode(['', '', '', '', '', '']);
+      inputRefs[0].current.focus();
       return;
     }
-    
-    setLoading(true);
-    try {
-      // Simulando verificação
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simular sucesso
-      if (code === '123456') { // Em um app real, isso seria validado no backend
-        if (redirectTo) {
-          navigation.navigate(redirectTo);
-        } else {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Main' }],
-          });
-        }
-      } else {
-        Alert.alert('Código inválido', 'O código digitado não é válido. Tente novamente.');
-        // Limpar os campos
-        setVerificationCode(['', '', '', '', '', '']);
-        inputRefs[0].current.focus();
-      }
-    } catch (error) {
-      console.error('Erro na verificação:', error);
-      Alert.alert('Erro', 'Ocorreu um erro ao verificar o código. Tente novamente.');
-    } finally {
-      setLoading(false);
+
+    // Sucesso: redireciona o usuário
+    if (redirectTo) {
+      navigation.navigate(redirectTo);
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
     }
-  };
+  } catch (err) {
+    console.error('Erro inesperado na verificação:', err);
+    Alert.alert('Erro', 'Ocorreu um erro ao verificar o código. Tente novamente.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Reenviar código
   const handleResendCode = async () => {
