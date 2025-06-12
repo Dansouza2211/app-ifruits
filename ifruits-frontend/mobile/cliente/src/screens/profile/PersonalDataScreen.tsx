@@ -193,21 +193,22 @@ export default function PersonalDataScreen({ navigation }) {
   });
 
   const fetchData = async () => {
-    const { data, error } = await supabase.from('usuarios').select("*");
     const { data: authData, error: authError } = await supabase.auth.getUser();
+    const { data, error } = await supabase.from('usuarios').select("*").eq("id",authData.user?.id).single();
     if (error) {
       console.log("Erro ao carregar dados do usuário: ", error.message);
       return;
     }
 
-    if (data && data.length > 0) {
+    if (data) {
       setUserData((prev: any) => ({
         ...prev,
-        name: data[0].nome,
-        cpf: data[0].cpf,
+        name: data.nome,
+        cpf: data.cpf,
         email: authData.user?.email,
-        phone: data[0].telefone,
-        birthDate: data[0].data_nascimento
+        phone: data.telefone,
+        birthDate: data.data_nascimento,
+        gender: data.genero
       }))
     }
   };
