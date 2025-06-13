@@ -77,35 +77,25 @@ function App(): JSX.Element {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* Rotas de Autenticação */}
-        <Route path="/login" element={
-          <RedirectIfAuthenticated>
+        <Route path="/login" element={    
             <LoginPage />
-          </RedirectIfAuthenticated>
         } />
         
         <Route path="/cadastrar" element={
-          <RedirectIfAuthenticated>
             <RegisterPage />
-          </RedirectIfAuthenticated>
         } />
         
-        <Route path="/esqueci-senha" element={
-          <RedirectIfAuthenticated>
+        <Route path="/esqueci-senha" element={  
             <ForgotPasswordPage />
-          </RedirectIfAuthenticated>
         } />
         
-        <Route path="/onboarding" element={
-          <ProtectedRoute>
+        <Route path="/onboarding" element={  
             <OnboardingPage />
-          </ProtectedRoute>
         } />
         
         {/* Rotas do Dashboard */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
+        <Route path="/dashboard" element={      
             <DashboardLayout />
-          </ProtectedRoute>
         }>
           <Route index element={<DashboardPage />} />
           <Route path="produtos" element={<ProductsPage />} />

@@ -5,6 +5,7 @@ import Logo from '../../components/Logo';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../utils/supabase';
 
 const RegisterPage = () => {
   const [step, setStep] = useState(1);
@@ -14,6 +15,7 @@ const RegisterPage = () => {
     storeCategory: '',
     cnpj: '',
     phone: '',
+    storeId: '',
     
     // Dados do responsável
     ownerName: '',
@@ -172,23 +174,37 @@ const RegisterPage = () => {
       // Validar código de verificação
       if (!formData.verificationCode.trim()) {
         newErrors.verificationCode = 'Código de verificação é obrigatório';
-      } else if (formData.verificationCode !== defaultVerificationCode) {
-        newErrors.verificationCode = 'Código de verificação inválido';
-      }
+      } //else if (formData.verificationCode !== defaultVerificationCode) {
+        //newErrors.verificationCode = 'Código de verificação inválido';
+      //}
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
   
-  const nextStep = () => {
+  const nextStep = async() => {
     if (validateStep(step)) {
       if (step === 4) {
-        // Simular envio de email com código de verificação
-        setFormData({
-          ...formData,
-          emailSent: true
-        });
+        const email = formData.email;
+        const password = formData.password;
+
+        const { data, error } = await supabase.auth.signUp({email, password});
+
+        if(error){
+          console.error("Erro ao registrar loja: ", error);
+          return;
+        }
+
+        const { user } = data;
+
+        if(user){
+          setFormData({
+            ...formData,
+            storeId: user.id,
+            emailSent: true
+          })
+        }
       }
       setStep(step + 1);
     }
@@ -200,16 +216,65 @@ const RegisterPage = () => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (validateStep(step)) {
-      const result = await register(formData);
-      
-      if (result.success) {
-        navigate('/onboarding');
-      } else {
-        setErrors({ auth: result.error || 'Erro ao fazer cadastro. Tente novamente.' });
-      }
+
+    const email = formData.email;
+
+    const { data: codeData , error: codeError} = await supabase.auth.verifyOtp({
+      email,
+      token: formData.verificationCode,
+      type: 'email'
+    })
+
+    if(codeError){
+      console.error("Erro ao verificar código: ", codeError.message);
+      return;
     }
+
+    const {data: ownerData, error: ownerError} = await supabase.from('responsavel_loja').insert([{
+      nome: formData.ownerName,
+      email: formData.ownerEmail,
+      cpf: formData.ownerCpf,
+      telefone: formData.ownerPhone
+    }])
+    .select()
+    .single();
+
+    if(ownerError){
+      console.error("Erro ao cadastrar o responsável da loja: ", ownerError.message);
+      return;
+    }
+
+    const { error: profileError } = await supabase.from('loja').insert([{
+      id: formData.storeId,
+      id_Responsavel: ownerData.id,
+      nome: formData.storeName,
+      cnpj: formData.cnpj,
+      categoria: formData.storeCategory,
+      telefone: formData.phone
+    }]);
+
+    if(profileError){
+      console.error("Erro ao cadastrar perfil da loja: ", profileError.message);
+      return;
+    }
+    
+    const { data: addressData, error: addressError} = await supabase.from('endereco_loja').insert([{
+      id_Loja: formData.storeId,
+      cep: formData.zipCode,
+      rua: formData.street,
+      bairro: formData.neighborhood,
+      cidade: formData.city,
+      estado: formData.state,
+      complemento: formData.complement,
+      numero: formData.number
+    }]);
+
+    if(addressError){
+      console.error("Erro ao cadastrar endereço da loja: ", addressError.message);
+      return;
+    }
+
+    navigate('/onboarding');
   };
   
   // Função para reenviar o código
