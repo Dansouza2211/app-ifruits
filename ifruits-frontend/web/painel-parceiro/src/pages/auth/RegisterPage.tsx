@@ -205,10 +205,6 @@ const RegisterPage = () => {
             emailSent: true
           })
         }
-        // setFormData({
-        //   ...formData,
-        //   emailSent: true
-        // });
       }
       setStep(step + 1);
     }
@@ -220,16 +216,6 @@ const RegisterPage = () => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    //if (validateStep(step)) {
-      //const result = await register(formData);
-      
-      // if (result.success) {
-      //   navigate('/onboarding');
-      // } else {
-      //   setErrors({ auth: result.error || 'Erro ao fazer cadastro. Tente novamente.' });
-      // }
-    //}
 
     const email = formData.email;
 
