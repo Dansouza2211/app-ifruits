@@ -35,26 +35,12 @@ const LoginPage = () => {
     e.preventDefault();
 
     if (validateForm()) {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-        if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            alert('Email ou senha incorretos.');
-          } else if (error.message.includes('User not found')) {
-            alert('Usuário não encontrado.');
-          } else {
-            alert(`Erro ao fazer login: ${error.message}`);
-          }
-          return;
-        }
-
-        const token = data.session.access_token;
-        localStorage.setItem('userToken', token);
+      const result = await login(email, password);
+      
+      if(result.success){
         navigate('/dashboard');
-      } catch (error) {
-        console.error('Erro no login:', error);
-        alert('Erro ao fazer login. Tente novamente.');
+      } else{
+        setErrors({ auth: result.error || 'Erro ao fazer login. Tente novamente.' });
       }
     }
   };

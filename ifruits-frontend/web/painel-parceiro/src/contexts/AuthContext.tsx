@@ -87,13 +87,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const user = data.user;
+      
+      const { data: storeData, error: storeError } = await supabase.from('loja').select('*').eq('id', user.id).single();
+
+      if(storeError){
+        console.error("Erro ao logar: ", storeError);
+      };
+
       const userData: User = {
         id: user.id,
-        name: user.user_metadata?.name || 'Parceiro',
+        name: storeData.nome || 'Parceiro',
         email: user.email!,
         role: 'partner',
-        storeId: 'store-001',
-        storeName: 'Minha Loja',
+        storeId: user.id,
+        storeName: storeData.nome,
         avatar: '/profile-photo.jpg'
       };
 
