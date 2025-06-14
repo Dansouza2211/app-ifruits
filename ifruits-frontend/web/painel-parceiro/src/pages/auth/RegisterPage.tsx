@@ -217,64 +217,13 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const email = formData.email;
+    const result = await register(formData);
 
-    const { data: codeData , error: codeError} = await supabase.auth.verifyOtp({
-      email,
-      token: formData.verificationCode,
-      type: 'email'
-    })
-
-    if(codeError){
-      console.error("Erro ao verificar código: ", codeError.message);
-      return;
+    if(result.success){
+      navigate('/onboarding');
+    } else {
+      setErrors({ auth: result.error || 'Erro ao fazer cadastro. Tente novamente.' });
     }
-
-    const {data: ownerData, error: ownerError} = await supabase.from('responsavel_loja').insert([{
-      nome: formData.ownerName,
-      email: formData.ownerEmail,
-      cpf: formData.ownerCpf,
-      telefone: formData.ownerPhone
-    }])
-    .select()
-    .single();
-
-    if(ownerError){
-      console.error("Erro ao cadastrar o responsável da loja: ", ownerError.message);
-      return;
-    }
-
-    const { error: profileError } = await supabase.from('loja').insert([{
-      id: formData.storeId,
-      id_Responsavel: ownerData.id,
-      nome: formData.storeName,
-      cnpj: formData.cnpj,
-      categoria: formData.storeCategory,
-      telefone: formData.phone
-    }]);
-
-    if(profileError){
-      console.error("Erro ao cadastrar perfil da loja: ", profileError.message);
-      return;
-    }
-    
-    const { data: addressData, error: addressError} = await supabase.from('endereco_loja').insert([{
-      id_Loja: formData.storeId,
-      cep: formData.zipCode,
-      rua: formData.street,
-      bairro: formData.neighborhood,
-      cidade: formData.city,
-      estado: formData.state,
-      complemento: formData.complement,
-      numero: formData.number
-    }]);
-
-    if(addressError){
-      console.error("Erro ao cadastrar endereço da loja: ", addressError.message);
-      return;
-    }
-
-    navigate('/onboarding');
   };
   
   // Função para reenviar o código

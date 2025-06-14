@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { supabase } from '../utils/supabase';
 
 interface User {
   id: string;
@@ -10,10 +11,32 @@ interface User {
   avatar: string;
 }
 
+interface RegisterFormData {
+  email: string;
+  password: string;
+  verificationCode: string;
+  storeId: string;
+  storeName: string;
+  storeCategory: string;
+  cnpj: string;
+  phone: string;
+  ownerName: string;
+  ownerEmail: string;
+  ownerPhone: string;
+  ownerCpf: string;
+  zipCode: string;
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+}
+
 interface AuthContextType {
   currentUser: User | null;
   login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
-  register: (userData: { email: string; storeName: string; password: string }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  register: (formData: RegisterFormData) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   loading: boolean;
   error: string | null;
@@ -40,7 +63,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Verificar se o usuário já está logado quando a aplicação carrega
     const storedUser = localStorage.getItem('ifruits-partner-user');
     if (storedUser) {
       try {
@@ -53,32 +75,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Função de login
   const login = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Limpar o localStorage para garantir que as novas informações sejam utilizadas
-      localStorage.removeItem('ifruits-partner-user');
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error || !data?.user) {
+        return { success: false, error: error?.message || 'Login inválido' };
+      }
+
+      const user = data.user;
       
-      // Aceitar qualquer credencial neste momento
+      const { data: storeData, error: storeError } = await supabase.from('loja').select('*').eq('id', user.id).single();
+
+      if(storeError){
+        console.error("Erro ao logar: ", storeError);
+      };
+
       const userData: User = {
-        id: 'partner-001',
-        name: 'Hortifruti Express',
-        email: email || 'demo@ifruits.com',
+        id: user.id,
+        name: storeData.nome || 'Parceiro',
+        email: user.email!,
         role: 'partner',
-        storeId: 'store-001',
-        storeName: 'Hortifruti Express',
+        storeId: user.id,
+        storeName: storeData.nome,
         avatar: '/profile-photo.jpg'
       };
-      
-      // Salvar usuário no localStorage
+
       localStorage.setItem('ifruits-partner-user', JSON.stringify(userData));
       setCurrentUser(userData);
+
       return { success: true, user: userData };
     } catch (err: any) {
-      const errorMessage = err.message || 'Ocorreu um erro durante o login';
+      const errorMessage = err.message || 'Erro ao fazer login';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -86,46 +117,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Função de cadastro
-  const register = async (userData: { email: string; storeName: string; password: string }): Promise<{ success: boolean; user?: User; error?: string }> => {
+  const register = async (formData: RegisterFormData): Promise<{ success: boolean; user?: User; error?: string }> => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Limpar o localStorage para garantir que as novas informações sejam utilizadas
-      localStorage.removeItem('ifruits-partner-user');
-      
-      // Simular registro (isso seria uma chamada de API real)
-      const newUser: User = {
-        id: `partner-${Math.floor(Math.random() * 1000)}`,
-        name: userData.storeName,
-        email: userData.email,
+      const { error: codeError } = await supabase.auth.verifyOtp({
+        email: formData.email,
+        token: formData.verificationCode,
+        type: 'email'
+      });
+      if (codeError) return { success: false, error: codeError.message };
+
+      const { data: ownerData, error: ownerError } = await supabase.from('responsavel_loja').insert([{
+        nome: formData.ownerName,
+        email: formData.ownerEmail,
+        cpf: formData.ownerCpf,
+        telefone: formData.ownerPhone
+      }]).select().single();
+      if (ownerError) return { success: false, error: ownerError.message };
+
+      const { error: lojaError } = await supabase.from('loja').insert([{
+        id: formData.storeId,
+        id_Responsavel: ownerData.id,
+        nome: formData.storeName,
+        cnpj: formData.cnpj,
+        categoria: formData.storeCategory,
+        telefone: formData.phone
+      }]);
+      if (lojaError) return { success: false, error: lojaError.message };
+
+      const { error: addressError } = await supabase.from('endereco_loja').insert([{
+        id_Loja: formData.storeId,
+        cep: formData.zipCode,
+        rua: formData.street,
+        bairro: formData.neighborhood,
+        cidade: formData.city,
+        estado: formData.state,
+        complemento: formData.complement,
+        numero: formData.number
+      }]);
+      if (addressError) return { success: false, error: addressError.message };
+
+      const userData: User = {
+        id: ownerData.id,
+        name: formData.storeName,
+        email: formData.email,
         role: 'partner',
-        storeId: `store-${Math.floor(Math.random() * 1000)}`,
-        storeName: userData.storeName,
+        storeId: formData.storeId,
+        storeName: formData.storeName,
         avatar: '/profile-photo.jpg'
       };
-      
-      // Salvar usuário no localStorage
-      localStorage.setItem('ifruits-partner-user', JSON.stringify(newUser));
-      setCurrentUser(newUser);
-      return { success: true, user: newUser };
+
+      localStorage.setItem('ifruits-partner-user', JSON.stringify(userData));
+      setCurrentUser(userData);
+
+      return { success: true, user: userData };
     } catch (err: any) {
-      const errorMessage = err.message || 'Ocorreu um erro durante o cadastro';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
+      return { success: false, error: err.message || 'Erro ao registrar' };
     } finally {
       setLoading(false);
     }
   };
 
-  // Função de logout
   const logout = (): void => {
     localStorage.removeItem('ifruits-partner-user');
     setCurrentUser(null);
   };
 
-  // Função para atualizar dados do usuário
   const updateUserData = (newData: Partial<User>): void => {
     if (currentUser) {
       const updatedUser = { ...currentUser, ...newData };
@@ -145,4 +204,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}; 
+};
