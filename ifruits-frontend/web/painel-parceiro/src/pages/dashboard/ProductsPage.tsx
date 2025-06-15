@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '../../utils/supabase';
 
 // Dados mockados para produtos
 const mockProducts = [
@@ -163,12 +164,12 @@ const ProductsPage = () => {
     const { name, value, type, checked } = e.target;
     setNewProductForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : 
-              type === 'number' ? parseFloat(value) : value
+      [name]: type === 'checkbox' ? checked :
+        type === 'number' ? parseFloat(value) : value
     }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async(e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -178,8 +179,19 @@ const ProductsPage = () => {
       return;
     }
 
+    const filePath = `${file.name}-${Date.now()}`
+
     // Criar URL temporária para preview
-    const imageUrl = URL.createObjectURL(file);
+    const {error: uploadingError} = await supabase.storage.from("produto-imagem").upload(filePath, file);
+
+    if(uploadingError){
+      console.error("Erro ao subir imagem para o servidor: ", uploadingError);
+      return;
+    }
+
+    const {data: imageData} = await supabase.storage.from("produto-imagem").getPublicUrl(filePath);
+
+    const imageUrl = imageData.publicUrl;  
     setPreviewImage(imageUrl);
 
     // Em um cenário real, aqui fariamos upload para um servidor
@@ -191,18 +203,45 @@ const ProductsPage = () => {
     }));
   };
 
-  const handleAddSubmit = (e) => {
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
-    
-    // Criar novo produto
+
+    const { data: storeData, error: storeError} = await supabase.auth.getUser();
+
+    if(storeError){
+      console.error("Erro ao buscar ID da loja!", storeError?.message);
+      return;
+    }
+
+    const storeId = storeData.user?.id;
+
+    // Criar novo produto (sem o campo `id`, o Supabase gera automaticamente)
     const newProduct = {
-      ...newProductForm,
-      id: Math.max(...products.map(p => p.id), 0) + 1 // Gerar ID único
+      id_Loja: storeId,
+      nome: newProductForm.name,
+      preco: parseFloat(newProductForm.price),
+      categoria: newProductForm.category,
+      estoque: parseInt(newProductForm.stock),
+      image_url: newProductForm.image,
+      ativo: newProductForm.active,
     };
-    
-    // Adicionar à lista de produtos
-    setProducts(prevProducts => [...prevProducts, newProduct]);
+
+    // Persistir no Supabase
+    const { data, error } = await supabase
+      .from('produto')
+      .insert([newProduct]).select().single();
+
+    if (error) {
+      console.error("Erro ao adicionar produto:", error.message);
+      alert("Erro ao salvar no banco de dados.");
+      return;
+    }
+
+    // Atualiza localmente após salvar no Supabase
+    setProducts(prevProducts => [...prevProducts, data]);
     setShowAddModal(false);
+
+    window.location.reload();
   };
 
   // Funções para o modal de edição
@@ -224,8 +263,8 @@ const ProductsPage = () => {
     const { name, value, type, checked } = e.target;
     setEditForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : 
-              type === 'number' ? parseFloat(value) : value
+      [name]: type === 'checkbox' ? checked :
+        type === 'number' ? parseFloat(value) : value
     }));
   };
 
@@ -253,14 +292,14 @@ const ProductsPage = () => {
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    
+
     // Atualizar produto na lista
-    const updatedProducts = products.map(product => 
-      product.id === selectedProduct.id 
-        ? { ...product, ...editForm } 
+    const updatedProducts = products.map(product =>
+      product.id === selectedProduct.id
+        ? { ...product, ...editForm }
         : product
     );
-    
+
     setProducts(updatedProducts);
     setShowEditModal(false);
     setSelectedProduct(null);
@@ -283,7 +322,7 @@ const ProductsPage = () => {
   // Modal de adição
   const AddModal = () => {
     if (!showAddModal) return null;
-    
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
@@ -298,7 +337,7 @@ const ProductsPage = () => {
               </svg>
             </button>
           </div>
-          
+
           <form onSubmit={handleAddSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -314,7 +353,7 @@ const ProductsPage = () => {
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Categoria
@@ -337,15 +376,15 @@ const ProductsPage = () => {
                 Imagem do Produto
               </label>
               <div className="flex flex-col space-y-3">
-                <div 
+                <div
                   className="w-full border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
                   onClick={() => fileInputRef.current.click()}
                 >
                   {previewImage ? (
                     <div className="mb-3">
-                      <img 
-                        src={previewImage} 
-                        alt="Preview" 
+                      <img
+                        src={previewImage}
+                        alt="Preview"
                         className="w-32 h-32 object-cover rounded-md"
                       />
                     </div>
@@ -359,10 +398,10 @@ const ProductsPage = () => {
                   </p>
                   <p className="text-xs text-gray-400 mt-1">PNG, JPG ou GIF até 5MB</p>
                 </div>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
                   onChange={handleImageUpload}
                   ref={fileInputRef}
                 />
@@ -383,7 +422,7 @@ const ProductsPage = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -400,7 +439,7 @@ const ProductsPage = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Estoque
@@ -416,7 +455,7 @@ const ProductsPage = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -430,7 +469,7 @@ const ProductsPage = () => {
                 Produto ativo
               </label>
             </div>
-            
+
             <div className="flex justify-end space-x-3 pt-4 border-t">
               <button
                 type="button"
@@ -456,7 +495,7 @@ const ProductsPage = () => {
   // Modal de edição
   const EditModal = () => {
     if (!showEditModal || !selectedProduct) return null;
-    
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
@@ -471,7 +510,7 @@ const ProductsPage = () => {
               </svg>
             </button>
           </div>
-          
+
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -486,7 +525,7 @@ const ProductsPage = () => {
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Categoria
@@ -509,15 +548,15 @@ const ProductsPage = () => {
                 Imagem do Produto
               </label>
               <div className="flex flex-col space-y-3">
-                <div 
+                <div
                   className="w-full border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
                   onClick={() => editFileInputRef.current.click()}
                 >
                   {editPreviewImage ? (
                     <div className="mb-3">
-                      <img 
-                        src={editPreviewImage} 
-                        alt="Preview" 
+                      <img
+                        src={editPreviewImage}
+                        alt="Preview"
                         className="w-32 h-32 object-cover rounded-md"
                         onError={(e) => {
                           e.target.onerror = null;
@@ -535,10 +574,10 @@ const ProductsPage = () => {
                   </p>
                   <p className="text-xs text-gray-400 mt-1">PNG, JPG ou GIF até 5MB</p>
                 </div>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
                   onChange={handleEditImageUpload}
                   ref={editFileInputRef}
                 />
@@ -559,7 +598,7 @@ const ProductsPage = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -576,7 +615,7 @@ const ProductsPage = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Estoque
@@ -592,7 +631,7 @@ const ProductsPage = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -606,7 +645,7 @@ const ProductsPage = () => {
                 Produto ativo
               </label>
             </div>
-            
+
             <div className="flex justify-end space-x-3 pt-4 border-t">
               <button
                 type="button"
@@ -631,7 +670,7 @@ const ProductsPage = () => {
   // Modal de confirmação de exclusão
   const DeleteModal = () => {
     if (!showDeleteModal || !selectedProduct) return null;
-    
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
@@ -640,12 +679,12 @@ const ProductsPage = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </div>
-          
+
           <h2 className="text-xl font-bold text-gray-800 text-center mb-2">Excluir Produto</h2>
           <p className="text-gray-600 text-center mb-6">
             Tem certeza que deseja excluir o produto <span className="font-semibold">{selectedProduct.name}</span>? Esta ação não pode ser desfeita.
           </p>
-          
+
           <div className="flex justify-center space-x-3">
             <button
               onClick={() => setShowDeleteModal(false)}
@@ -674,7 +713,7 @@ const ProductsPage = () => {
     >
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Produtos</h1>
-        <button 
+        <button
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center"
           onClick={openAddModal}
         >
@@ -700,7 +739,7 @@ const ProductsPage = () => {
             </button>
           </div>
           <div className="w-full md:w-auto">
-            <select 
+            <select
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
               value={selectedCategory}
               onChange={handleCategoryChange}
@@ -744,8 +783,8 @@ const ProductsPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 rounded-md bg-gray-200 flex-shrink-0 overflow-hidden">
-                          <img 
-                            src={product.image} 
+                          <img
+                            src={product.image}
                             alt={product.name}
                             className="h-full w-full object-cover"
                             onError={(e) => {
@@ -773,20 +812,19 @@ const ProductsPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        product.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
                         {product.active ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
+                      <button
                         className="text-green-600 hover:text-green-800 mr-3"
                         onClick={() => openEditModal(product)}
                       >
                         Editar
                       </button>
-                      <button 
+                      <button
                         className="text-red-600 hover:text-red-800"
                         onClick={() => openDeleteModal(product)}
                       >
@@ -807,11 +845,11 @@ const ProductsPage = () => {
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum produto encontrado</h3>
             <p className="text-gray-500 mb-6 max-w-md">
-              {searchTerm || selectedCategory 
-                ? 'Não encontramos produtos correspondentes aos critérios de busca.' 
+              {searchTerm || selectedCategory
+                ? 'Não encontramos produtos correspondentes aos critérios de busca.'
                 : 'Adicione seu primeiro produto para começar a vender através do iFruits.'}
             </p>
-            <button 
+            <button
               className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center"
               onClick={openAddModal}
             >
