@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../utils/supabase';
 
@@ -97,7 +97,7 @@ const mockProducts = [
 ];
 
 const ProductsPage = () => {
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -127,10 +127,32 @@ const ProductsPage = () => {
 
   // Função para filtrar produtos
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === '' || product.category === selectedCategory;
+    const name = product?.name || '';
+    const category = product?.category || '';
+    const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === '' || category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data, error } = await supabase
+        .from('produto')
+        .select('*')
+        .order('nome', { ascending: true });
+
+      if (error) {
+        console.error("Erro ao carregar produtos:", error.message);
+        return;
+      }
+
+      console.log("Produtos carregados: ", data);
+      setProducts(data);
+    };
+
+    fetchProducts();
+  }, []);
 
   // Manipular busca
   const handleSearch = (e) => {
@@ -169,7 +191,7 @@ const ProductsPage = () => {
     }));
   };
 
-  const handleImageUpload = async(e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -182,16 +204,16 @@ const ProductsPage = () => {
     const filePath = `${file.name}-${Date.now()}`
 
     // Criar URL temporária para preview
-    const {error: uploadingError} = await supabase.storage.from("produto-imagem").upload(filePath, file);
+    const { error: uploadingError } = await supabase.storage.from("produto-imagem").upload(filePath, file);
 
-    if(uploadingError){
+    if (uploadingError) {
       console.error("Erro ao subir imagem para o servidor: ", uploadingError);
       return;
     }
 
-    const {data: imageData} = await supabase.storage.from("produto-imagem").getPublicUrl(filePath);
+    const { data: imageData } = await supabase.storage.from("produto-imagem").getPublicUrl(filePath);
 
-    const imageUrl = imageData.publicUrl;  
+    const imageUrl = imageData.publicUrl;
     setPreviewImage(imageUrl);
 
     // Em um cenário real, aqui fariamos upload para um servidor
@@ -206,9 +228,9 @@ const ProductsPage = () => {
   const handleAddSubmit = async (e) => {
     e.preventDefault();
 
-    const { data: storeData, error: storeError} = await supabase.auth.getUser();
+    const { data: storeData, error: storeError } = await supabase.auth.getUser();
 
-    if(storeError){
+    if (storeError) {
       console.error("Erro ao buscar ID da loja!", storeError?.message);
       return;
     }
@@ -230,6 +252,12 @@ const ProductsPage = () => {
     const { data, error } = await supabase
       .from('produto')
       .insert([newProduct]).select().single();
+
+
+    if (!data || !data.nome || typeof data.preco !== 'number') {
+      console.warn("Produto inválido recebido do Supabase:", data);
+      return;
+    }
 
     if (error) {
       console.error("Erro ao adicionar produto:", error.message);
@@ -365,9 +393,9 @@ const ProductsPage = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
                 required
               >
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
+                <option value="Frutas">Frutas</option>
+                <option value="Legumes">Legumes</option>
+                <option value="Verduras">Verduras</option>
               </select>
             </div>
 
@@ -537,9 +565,9 @@ const ProductsPage = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
                 required
               >
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
+                <option value="Frutas">Frutas</option>
+                <option value="Legumes">Legumes</option>
+                <option value="Verduras">Verduras</option>
               </select>
             </div>
 
@@ -745,9 +773,9 @@ const ProductsPage = () => {
               onChange={handleCategoryChange}
             >
               <option value="">Todas as categorias</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
+              <option value="Frutas">Frutas</option>
+              <option value="Legumes">Legumes</option>
+              <option value="Verduras">Verduras</option>
             </select>
           </div>
         </div>
@@ -784,8 +812,8 @@ const ProductsPage = () => {
                       <div className="flex items-center">
                         <div className="h-10 w-10 rounded-md bg-gray-200 flex-shrink-0 overflow-hidden">
                           <img
-                            src={product.image}
-                            alt={product.name}
+                            src={product.image_url}
+                            alt={product.nome}
                             className="h-full w-full object-cover"
                             onError={(e) => {
                               e.target.onerror = null;
@@ -795,26 +823,28 @@ const ProductsPage = () => {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {product.name}
+                            {product.nome}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{product.category}</div>
+                      <div className="text-sm text-gray-500">{product.categoria}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">R$ {product.price.toFixed(2)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`text-sm ${product.stock > 0 ? 'text-gray-900' : 'text-red-600 font-medium'}`}>
-                        {product.stock > 0 ? product.stock : 'Esgotado'}
+                      <div className="text-sm text-gray-900">
+                        R$ {typeof product.preco === 'number' ? product.preco.toFixed(2) : '0,00'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      <div className={`text-sm ${product.estoque > 0 ? 'text-gray-900' : 'text-red-600 font-medium'}`}>
+                        {product.estoque > 0 ? product.estoque : 'Esgotado'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
-                        {product.active ? 'Ativo' : 'Inativo'}
+                        {product.ativo ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
