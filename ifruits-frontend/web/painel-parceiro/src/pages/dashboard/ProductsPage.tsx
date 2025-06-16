@@ -137,10 +137,19 @@ const ProductsPage = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      const {data: storeData, error: storeError} = await supabase.auth.getUser();
+
+      if(storeError){
+        console.error("Erro ao resgatar dados da loja: ", storeError.message);
+      }
+
+      const storeId = storeData.user?.id;
+      
       const { data, error } = await supabase
         .from('produto')
         .select('*')
-        .order('nome', { ascending: true });
+        .order('nome', { ascending: true })
+        .eq("id_Loja", storeId);
 
       if (error) {
         console.error("Erro ao carregar produtos:", error.message);
