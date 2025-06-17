@@ -98,7 +98,7 @@ export const CartProvider = ({ children }) => {
       const { data: itemData, error: fetchError } = await supabase
         .from('itens_carrinho')
         .select('quantidade')
-        .eq('id_Carrinho', cartIdToUse)
+        .eq('id_Carrinho', cartId)
         .eq('id_Produto', product.id)
         .single();
 
@@ -159,7 +159,7 @@ export const CartProvider = ({ children }) => {
   };
 
   // Aumentar a quantidade de um item
-  const increaseQuantity = (productId) => {
+  const increaseQuantity = async (productId) => {
     setCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
@@ -167,6 +167,29 @@ export const CartProvider = ({ children }) => {
           : item
       )
     );
+
+    const { data: increaseData, error: increaseError } = await supabase.from("itens_carrinho")
+      .select("quantidade")
+      .eq("id_Carrinho", cartId)
+      .eq("id_Produto", productId)
+      .single();
+    
+    if(increaseError){
+      console.error("Erro ao puxar dados dos itens do carrinho: ", increaseError.message);
+      return;
+    };
+
+    const incremento = increaseData.quantidade + 1;
+
+    const{ error } = await supabase.from("itens_carrinho")
+      .update({quantidade: incremento})
+      .eq("id_Carrinho", cartId)
+      .eq("id_Produto", productId);
+      
+    if(error){
+      console.error("Erro ao incrementar item no carrinho: ", error.message);
+      return;
+    }
   };
 
   // Diminuir a quantidade de um item
