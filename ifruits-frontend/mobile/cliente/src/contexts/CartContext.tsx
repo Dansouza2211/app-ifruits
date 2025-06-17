@@ -173,27 +173,27 @@ export const CartProvider = ({ children }) => {
       .eq("id_Carrinho", cartId)
       .eq("id_Produto", productId)
       .single();
-    
-    if(increaseError){
+
+    if (increaseError) {
       console.error("Erro ao puxar dados dos itens do carrinho: ", increaseError.message);
       return;
     };
 
     const incremento = increaseData.quantidade + 1;
 
-    const{ error } = await supabase.from("itens_carrinho")
-      .update({quantidade: incremento})
+    const { error } = await supabase.from("itens_carrinho")
+      .update({ quantidade: incremento })
       .eq("id_Carrinho", cartId)
       .eq("id_Produto", productId);
-      
-    if(error){
+
+    if (error) {
       console.error("Erro ao incrementar item no carrinho: ", error.message);
       return;
     }
   };
 
   // Diminuir a quantidade de um item
-  const decreaseQuantity = (productId) => {
+  const decreaseQuantity = async (productId) => {
     setCartItems(prevItems =>
       prevItems.map(item =>
         item.id === productId
@@ -201,6 +201,29 @@ export const CartProvider = ({ children }) => {
           : item
       )
     );
+
+    const { data: decreaseData, error: decreaseError } = await supabase.from("itens_carrinho")
+      .select("quantidade")
+      .eq("id_Carrinho", cartId)
+      .eq("id_Produto", productId)
+      .single();
+
+    if (decreaseError) {
+      console.error("Erro ao puxar dados dos itens do carrinho: ", decreaseError.message);
+      return;
+    };
+
+    const decremento = decreaseData.quantidade - 1;
+
+    const { error } = await supabase.from("itens_carrinho")
+      .update({ quantidade: decremento })
+      .eq("id_Carrinho", cartId)
+      .eq("id_Produto", productId);
+
+    if (error) {
+      console.error("Erro ao incrementar item no carrinho: ", error.message);
+      return;
+    }
   };
 
   // Remover um item do carrinho
