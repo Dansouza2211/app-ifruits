@@ -1,11 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useModal } from './ModalContext';
-import { hortifruti } from '../utils/mockData';
 import { supabase } from 'utils/supabase';
 import { Alert } from 'react-native';
-
-// Loja HortiFruti padrão
-const DEFAULT_STORE = hortifruti;
 
 // Criando o contexto
 const CartContext = createContext();
@@ -16,16 +12,9 @@ export const useCart = () => useContext(CartContext);
 // Provider do contexto
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
-  const [storeInfo, setStoreInfo] = useState(DEFAULT_STORE);
+  const [storeInfo, setStoreInfo] = useState('');
   const [cartId, setCartId] = useState('');
   const { alert, showSuccess } = useModal();
-
-  // Inicializar com a loja HortiFruti
-  useEffect(() => {
-    if (!storeInfo) {
-      setStoreInfo(DEFAULT_STORE);
-    }
-  }, []);
 
   // Adicionar um item ao carrinho
   const addToCart = async (product, store , quantity = 1) => {
@@ -241,9 +230,18 @@ export const CartProvider = ({ children }) => {
   };
 
   // Limpar o carrinho
-  const clearCart = () => {
+  const clearCart = async() => {
     setCartItems([]);
     setStoreInfo(null);
+
+    const { error: cleanCartError} = await supabase.from("itens_carrinho")
+      .delete()
+      .eq("id_Carrinho", cartId);
+    
+      if(cleanCartError){
+        console.error("Erro ao esvaziar carrinho: ", cleanCartError.message);
+        return;
+      }
   };
 
   // Obter o total de itens no carrinho
