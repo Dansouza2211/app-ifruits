@@ -28,7 +28,7 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   // Adicionar um item ao carrinho
-  const addToCart = async (product, store = DEFAULT_STORE, quantity = 1) => {
+  const addToCart = async (product, store , quantity = 1) => {
     const { data: userData, error: userError } = await supabase.auth.getUser();
 
     if (userError) {
@@ -227,8 +227,17 @@ export const CartProvider = ({ children }) => {
   };
 
   // Remover um item do carrinho
-  const removeItem = (productId) => {
+  const removeItem = async (productId) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
+    const { error: removeItemError} = await supabase.from("itens_carrinho")
+      .delete()
+      .eq("id_Carrinho", cartId)
+      .eq("id_Produto", productId);
+
+    if(removeItemError){
+      console.error("Erro ao deletar item: ", removeItemError.message);
+      return;
+    };
   };
 
   // Limpar o carrinho
