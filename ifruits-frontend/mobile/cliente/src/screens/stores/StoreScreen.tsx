@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCart } from '../../contexts/CartContext';
+import { supabase } from 'utils/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -246,7 +247,7 @@ const ProductItem = ({ item, onPress, onAddToCart }) => (
     <View className="flex-1 mr-3">
       <Text className="text-base font-bold text-gray-800 mb-1">{item.name}</Text>
       <Text className="text-xs text-gray-500 mb-2" numberOfLines={2}>{item.description}</Text>
-      <Text className="text-xs text-gray-400 mb-1">{item.weight}</Text>
+      <Text className="text-xs text-gray-400 mb-1">{item.stock} Unidades</Text>
       <Text className="text-base font-bold text-green-600">R$ {item.price.toFixed(2).replace('.', ',')}</Text>
     </View>
     <View className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden">
@@ -292,6 +293,33 @@ export default function StoreScreen() {
   const [activeCategory, setActiveCategory] = useState('cat1');
   const [searchQuery, setSearchQuery] = useState('');
   const { addToCart } = useCart();
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data ,error } = await supabase.from("produto").select("*");
+
+      if(error){
+        console.error("Erro ao carregar produtos: ", error.message);
+        return;
+      }
+
+      const productFormatted = data.map((product, index) => ({
+        id: product.id,
+        name: product.nome,
+        description: "Produto selecionado e fresco, ideal para o consumo no dia a dia. Cultivado com qualidade e cuidado, perfeito para uma alimentação saudável e equilibrada. Valor referente ao peso indicado. Imagem meramente ilustrativa.",
+        price: product.preco,
+        image: { uri: product.image_url},
+        stock: product.estoque,
+        category: product.categoria,
+        featured: product.ativo
+      }));
+
+      setProducts(productFormatted);
+    }
+
+    fetchProducts();
+  }, []);
   
   // Obter dados da loja a partir dos parâmetros da rota
   const store = route.params?.store || {
