@@ -510,7 +510,6 @@ const ProductsPage = () => {
 
     const filePath = `${file.name}-${Date.now()}`
 
-    // Criar URL temporária para preview
     const { error: uploadingError } = await supabase.storage.from("produto-imagem").upload(filePath, file);
 
     if (uploadingError) {
@@ -523,9 +522,6 @@ const ProductsPage = () => {
     const imageUrl = imageData.publicUrl;
     setPreviewImage(imageUrl);
 
-    // Em um cenário real, aqui fariamos upload para um servidor
-    // e receberíamos a URL da imagem salva
-    // Por enquanto, vamos apenas simular e usar a URL local temporária
     setNewProductForm(prev => ({
       ...prev,
       image: imageUrl
@@ -601,7 +597,7 @@ const ProductsPage = () => {
     }));
   };
 
-  const handleEditImageUpload = (e) => {
+  const handleEditImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -611,20 +607,50 @@ const ProductsPage = () => {
       return;
     }
 
-    // Criar URL temporária para preview
-    const imageUrl = URL.createObjectURL(file);
+    const filePath = `${file.name}-${Date.now()}`;
+
+    const{ error: uploadingError } = await supabase.storage.from("produto-imagem").upload(filePath, file);
+
+    if(uploadingError){
+      console.error("Erro ao subir imagem para o servidor: ", uploadingError.message);
+      return;
+    }
+
+    const {data: imageData } = await supabase.storage.from("produto-imagem").getPublicUrl(filePath);
+
+    const imageUrl = imageData.publicUrl;
     setEditPreviewImage(imageUrl);
 
-    // Em um cenário real, aqui faríamos upload para um servidor
-    // e receberíamos a URL da imagem salva
     setEditForm(prev => ({
       ...prev,
       image: imageUrl
     }));
   };
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
+
+    if (!selectedProduct) return;
+
+    const { data, error } = await supabase
+      .from('produto')
+      .update({
+        nome: editForm.name,
+        preco: parseFloat(editForm.price),
+        categoria: editForm.category,
+        estoque: parseInt(editForm.stock),
+        image_url: editForm.image,
+        ativo: editForm.active,
+      })
+      .eq('id', selectedProduct.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Erro ao editar produto:", error.message);
+      alert("Erro ao editar o produto.");
+      return;
+    }
 
     // Atualizar produto na lista
     const updatedProducts = products.map(product =>
