@@ -670,15 +670,22 @@ const ProductsPage = () => {
     setShowDeleteModal(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     // Remover produto da lista
+    if(!selectedProduct) return;
+
+    const { error } = await supabase.from("produto").delete().eq("id", selectedProduct.id);
+
+    if(error){
+      console.error("Erro ao deletar produto: ", error.message);
+      return;
+    }
+
     const updatedProducts = products.filter(product => product.id !== selectedProduct.id);
     setProducts(updatedProducts);
     setShowDeleteModal(false);
     setSelectedProduct(null);
   };
-
-
 
   return (
     <motion.div
