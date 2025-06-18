@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useCart } from '../../contexts/CartContext';
+import { supabase } from 'utils/supabase';
 
 const ReviewOrderScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -36,10 +37,46 @@ const ReviewOrderScreen = ({ route }) => {
     apple: 'Apple Pay'
   };
   
-  const handleFinishOrder = () => {
-    // Gerar um número de pedido aleatório
-    const orderNumber = Math.floor(Math.random() * 10000);
+  const handleFinishOrder = async () => {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if(userError){
+      console.error("Erro ao buscar ID do usuário: ", userError.message);
+      return;
+    }
     
+    const userId = userData.user.id;
+
+    const { data: orderData, error: orderError } = await supabase.from("pedido")
+      .insert([{
+        id_Usuario: userId,
+        status: "Aguardando pagamento"
+      }])
+      .select()
+      .single();
+
+    if(orderError){
+      console.error("Erro ao criar pedido: ", orderError.message);
+      return;
+    }
+
+    const orderNumber = orderData.id;
+
+     const orderItemsToInsert = cartItems.map(item => ({
+        id_Pedido: orderNumber,
+        id_Produto: item.id, // O ID do produto
+        quantidade: item.quantity,
+        preço: item.price // Guardando o preço do item no momento da compra
+    }));
+    
+    const { error: orderItemsError } = await supabase.from("itens_pedido")
+      .insert(orderItemsToInsert);
+    
+    if(orderItemsError){
+      console.error("Erro ao criar itens do pedido: ", orderItemsError.message);
+      return;
+    }
+
     // Limpar o carrinho
     clearCart();
     
