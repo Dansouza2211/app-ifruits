@@ -179,6 +179,185 @@ const AddModal = ({
   );
 };
 
+const EditModal = ({
+  show,
+  product,
+  formState,
+  onClose,
+  onChange,
+  onSubmit,
+  previewImage,
+  onImageUpload,
+  onRemoveImage,
+  fileInputRef
+}) => {
+  if (!show || !product) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-800">Editar Produto</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome do Produto
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formState.name}
+              onChange={onChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Categoria
+            </label>
+            <select
+              name="category"
+              value={formState.category}
+              onChange={onChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+              required
+            >
+              <option value="Frutas">Frutas</option>
+              <option value="Legumes">Legumes</option>
+              <option value="Verduras">Verduras</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Imagem do Produto
+            </label>
+            <div className="flex flex-col space-y-3">
+              <div
+                className="w-full border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
+                onClick={() => fileInputRef.current.click()}
+              >
+                {previewImage ? (
+                  <div className="mb-3">
+                    <img
+                      src={previewImage}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded-md"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://via.placeholder.com/100?text=Produto';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                )}
+                <p className="text-sm text-gray-500 text-center">
+                  {previewImage ? "Clique para alterar a imagem" : "Clique para selecionar uma imagem"}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">PNG, JPG ou GIF até 5MB</p>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onImageUpload}
+                ref={fileInputRef}
+              />
+              {previewImage && (
+                <button
+                  type="button"
+                  onClick={onRemoveImage}
+                  className="text-sm text-red-600 hover:text-red-700"
+                >
+                  Remover imagem
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Preço (R$)
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formState.price}
+                onChange={onChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                step="0.01"
+                min="0"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Estoque
+              </label>
+              <input
+                type="number"
+                name="stock"
+                value={formState.stock}
+                onChange={onChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                min="0"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="active"
+              id="active"
+              checked={formState.active}
+              onChange={onChange}
+              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+            />
+            <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
+              Produto ativo
+            </label>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+            >
+              Salvar Alterações
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const ProductsPage = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -441,179 +620,7 @@ const ProductsPage = () => {
 
 
   // Modal de edição
-  const EditModal = () => {
-    if (!showEditModal || !selectedProduct) return null;
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Editar Produto</h2>
-            <button
-              onClick={() => setShowEditModal(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nome do Produto
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={editForm.name}
-                onChange={handleEditFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoria
-              </label>
-              <select
-                name="category"
-                value={editForm.category}
-                onChange={handleEditFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
-                required
-              >
-                <option value="Frutas">Frutas</option>
-                <option value="Legumes">Legumes</option>
-                <option value="Verduras">Verduras</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Imagem do Produto
-              </label>
-              <div className="flex flex-col space-y-3">
-                <div
-                  className="w-full border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
-                  onClick={() => editFileInputRef.current.click()}
-                >
-                  {editPreviewImage ? (
-                    <div className="mb-3">
-                      <img
-                        src={editPreviewImage}
-                        alt="Preview"
-                        className="w-32 h-32 object-cover rounded-md"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://via.placeholder.com/100?text=Produto';
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  )}
-                  <p className="text-sm text-gray-500 text-center">
-                    {editPreviewImage ? "Clique para alterar a imagem" : "Clique para selecionar uma imagem"}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">PNG, JPG ou GIF até 5MB</p>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleEditImageUpload}
-                  ref={editFileInputRef}
-                />
-                {editPreviewImage && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditPreviewImage('');
-                      setEditForm(prev => ({ ...prev, image: '' }));
-                      if (editFileInputRef.current) {
-                        editFileInputRef.current.value = '';
-                      }
-                    }}
-                    className="text-sm text-red-600 hover:text-red-700"
-                  >
-                    Remover imagem
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preço (R$)
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={editForm.price}
-                  onChange={handleEditFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  step="0.01"
-                  min="0"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Estoque
-                </label>
-                <input
-                  type="number"
-                  name="stock"
-                  value={editForm.stock}
-                  onChange={handleEditFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  min="0"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="active"
-                id="active"
-                checked={editForm.active}
-                onChange={handleEditFormChange}
-                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-              />
-              <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
-                Produto ativo
-              </label>
-            </div>
-
-            <div className="flex justify-end space-x-3 pt-4 border-t">
-              <button
-                type="button"
-                onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-              >
-                Salvar Alterações
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
 
   // Modal de confirmação de exclusão
   const DeleteModal = () => {
@@ -829,7 +836,26 @@ const ProductsPage = () => {
         fileInputRef={fileInputRef}
         categories={categories}
       />
-      <EditModal />
+
+      <EditModal
+        show={showEditModal}
+        product={selectedProduct}
+        formState={editForm}
+        onClose={() => setShowEditModal(false)}
+        onChange={handleEditFormChange}
+        onSubmit={handleEditSubmit}
+        previewImage={editPreviewImage}
+        onImageUpload={handleEditImageUpload}
+        onRemoveImage={() => {
+          setEditPreviewImage('');
+          setEditForm(prev => ({ ...prev, image: '' }));
+          if (editFileInputRef.current) {
+            editFileInputRef.current.value = '';
+          }
+        }}
+        fileInputRef={editFileInputRef}
+      />
+      
       <DeleteModal />
     </motion.div>
   );
