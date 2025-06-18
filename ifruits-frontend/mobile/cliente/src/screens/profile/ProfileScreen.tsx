@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from 'utils/supabase';
 
 // Componente para item do menu de perfil
 const ProfileMenuItem = ({ title, subtitle, icon, hasNotification, isNew, onPress }) => (
@@ -37,6 +38,40 @@ const ProfileMenuItem = ({ title, subtitle, icon, hasNotification, isNew, onPres
 );
 
 export default function ProfileScreen({ navigation }) {
+  const[userInfo, setUserInfo] = useState<any>({
+    name: '',
+    email: ''
+  });
+
+  const fetchUser = async() => {
+    const { data, error } = await supabase.auth.getUser();
+    
+    if(error){
+      console.error("Erro ao buscar ID do usuário: ", error.message);
+      return;
+    }
+
+    const { data: userData, error: userError } = await supabase.from("usuarios")
+      .select("*")
+      .eq("id", data.user.id)
+      .single();
+
+    if(userError){
+      console.error("Erro ao buscar dados do usuário: ", userError.message);
+      return;
+    }
+
+    setUserInfo((prev: any) => ({
+        ...prev,
+        name: userData.nome,
+        email: data.user?.email,
+      }));
+  }
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
   // Função auxiliar para lidar com navegação
   const handleNavigation = (screenName) => {
     console.log(`Navegando para: ${screenName}`);
@@ -242,8 +277,8 @@ export default function ProfileScreen({ navigation }) {
             resizeMode="cover"
           />
           <View className="ml-4 flex-1">
-            <Text className="font-bold text-lg">João Silva</Text>
-            <Text className="text-gray-500">joao.silva@email.com</Text>
+            <Text className="font-bold text-lg">{userInfo.name}</Text>
+            <Text className="text-gray-500">{userInfo.email}</Text>
             <TouchableOpacity 
               onPress={() => handleNavigation('PersonalData')}
               className="mt-1 flex-row items-center"
