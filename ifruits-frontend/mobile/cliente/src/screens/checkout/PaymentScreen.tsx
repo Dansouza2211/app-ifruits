@@ -29,13 +29,13 @@ const PaymentScreen = ({ route }) => {
   const selectedPaymentMethod = getSelectedPaymentMethod();
   
   // Subtotal (sem frete)
-  const subtotal = total - deliveryFee;
+  const subtotal = total;
   
   // Taxa de serviço fixa
   const serviceFee = 0.99;
   
   // Total final com desconto
-  const finalTotal = total + serviceFee - discount;
+  const finalTotal = total + serviceFee + deliveryFee - discount;
   
   // Função para aplicar cupom de desconto
   const applyDiscount = () => {
