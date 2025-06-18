@@ -67,13 +67,6 @@ const OrderSummary = ({ subtotal, deliveryFee, discount, total }) => (
       <Text className="font-medium">R$ {subtotal.toFixed(2).replace('.', ',')}</Text>
     </View>
     
-    <View className="flex-row justify-between mb-2">
-      <Text className="text-gray-600">Taxa de entrega</Text>
-      <Text className={`font-medium ${deliveryFee === 0 ? 'text-green-600' : ''}`}>
-        {deliveryFee === 0 ? 'Grátis' : `R$ ${deliveryFee.toFixed(2).replace('.', ',')}`}
-      </Text>
-    </View>
-    
     {discount > 0 && (
       <View className="flex-row justify-between mb-2">
         <Text className="text-gray-600">Desconto</Text>
