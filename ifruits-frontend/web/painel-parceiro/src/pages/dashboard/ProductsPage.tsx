@@ -96,6 +96,183 @@ const mockProducts = [
   }
 ];
 
+const AddModal = ({
+  show,
+  onClose,
+  onSubmit,
+  formState,
+  onFormChange,
+  onImageUpload,
+  previewImage,
+  onRemoveImage,
+  fileInputRef,
+  categories
+}) => {
+  if (!show) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-800">Adicionar Novo Produto</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome do Produto
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formState.name}
+              onChange={onFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+              placeholder="Ex: Maçã Gala"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Categoria
+            </label>
+            <select
+              name="category"
+              value={formState.category}
+              onChange={onFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+              required
+            >
+              <option value="Frutas">Frutas</option>
+              <option value="Legumes">Legumes</option>
+              <option value="Verduras">Verduras</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Imagem do Produto
+            </label>
+            <div className="flex flex-col space-y-3">
+              <div
+                className="w-full border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
+                onClick={() => fileInputRef.current.click()}
+              >
+                {previewImage ? (
+                  <div className="mb-3">
+                    <img
+                      src={previewImage}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded-md"
+                    />
+                  </div>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                )}
+                <p className="text-sm text-gray-500 text-center">
+                  {previewImage ? "Clique para alterar a imagem" : "Clique para selecionar uma imagem"}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">PNG, JPG ou GIF até 5MB</p>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onImageUpload}
+                ref={fileInputRef}
+              />
+              {previewImage && (
+                <button
+                  type="button"
+                  onClick={onRemoveImage}
+                  className="text-sm text-red-600 hover:text-red-700"
+                >
+                  Remover imagem
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Preço (R$)
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formState.price}
+                onChange={onFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                step="0.01"
+                min="0"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Estoque
+              </label>
+              <input
+                type="number"
+                name="stock"
+                value={formState.stock}
+                onChange={onFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                min="0"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="active"
+              id="newProductActive"
+              checked={formState.active}
+              onChange={onFormChange}
+              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+            />
+            <label htmlFor="newProductActive" className="ml-2 block text-sm text-gray-700">
+              Produto ativo
+            </label>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={() => setShowAddModal(false)}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+              disabled={!previewImage}
+            >
+              Adicionar Produto
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const ProductsPage = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,14 +314,14 @@ const ProductsPage = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const {data: storeData, error: storeError} = await supabase.auth.getUser();
+      const { data: storeData, error: storeError } = await supabase.auth.getUser();
 
-      if(storeError){
+      if (storeError) {
         console.error("Erro ao resgatar dados da loja: ", storeError.message);
       }
 
       const storeId = storeData.user?.id;
-      
+
       const { data, error } = await supabase
         .from('produto')
         .select('*')
@@ -277,8 +454,6 @@ const ProductsPage = () => {
     // Atualiza localmente após salvar no Supabase
     setProducts(prevProducts => [...prevProducts, data]);
     setShowAddModal(false);
-
-    window.location.reload();
   };
 
   // Funções para o modal de edição
@@ -357,177 +532,7 @@ const ProductsPage = () => {
   };
 
   // Modal de adição
-  const AddModal = () => {
-    if (!showAddModal) return null;
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Adicionar Novo Produto</h2>
-            <button
-              onClick={() => setShowAddModal(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <form onSubmit={handleAddSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nome do Produto
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={newProductForm.name}
-                onChange={handleNewProductFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="Ex: Maçã Gala"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoria
-              </label>
-              <select
-                name="category"
-                value={newProductForm.category}
-                onChange={handleNewProductFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
-                required
-              >
-                <option value="Frutas">Frutas</option>
-                <option value="Legumes">Legumes</option>
-                <option value="Verduras">Verduras</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Imagem do Produto
-              </label>
-              <div className="flex flex-col space-y-3">
-                <div
-                  className="w-full border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
-                  onClick={() => fileInputRef.current.click()}
-                >
-                  {previewImage ? (
-                    <div className="mb-3">
-                      <img
-                        src={previewImage}
-                        alt="Preview"
-                        className="w-32 h-32 object-cover rounded-md"
-                      />
-                    </div>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  )}
-                  <p className="text-sm text-gray-500 text-center">
-                    {previewImage ? "Clique para alterar a imagem" : "Clique para selecionar uma imagem"}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">PNG, JPG ou GIF até 5MB</p>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  ref={fileInputRef}
-                />
-                {previewImage && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreviewImage('');
-                      setNewProductForm(prev => ({ ...prev, image: '' }));
-                      if (fileInputRef.current) {
-                        fileInputRef.current.value = '';
-                      }
-                    }}
-                    className="text-sm text-red-600 hover:text-red-700"
-                  >
-                    Remover imagem
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preço (R$)
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={newProductForm.price}
-                  onChange={handleNewProductFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  step="0.01"
-                  min="0"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Estoque
-                </label>
-                <input
-                  type="number"
-                  name="stock"
-                  value={newProductForm.stock}
-                  onChange={handleNewProductFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  min="0"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="active"
-                id="newProductActive"
-                checked={newProductForm.active}
-                onChange={handleNewProductFormChange}
-                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-              />
-              <label htmlFor="newProductActive" className="ml-2 block text-sm text-gray-700">
-                Produto ativo
-              </label>
-            </div>
-
-            <div className="flex justify-end space-x-3 pt-4 border-t">
-              <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-                disabled={!previewImage}
-              >
-                Adicionar Produto
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
 
   // Modal de edição
   const EditModal = () => {
@@ -902,7 +907,22 @@ const ProductsPage = () => {
       </div>
 
       {/* Renderizar modais */}
-      <AddModal />
+      <AddModal
+        show={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddSubmit}
+        formState={newProductForm}
+        onFormChange={handleNewProductFormChange}
+        onImageUpload={handleImageUpload}
+        previewImage={previewImage}
+        onRemoveImage={() => {
+          setPreviewImage('');
+          setNewProductForm(prev => ({ ...prev, image: '' }));
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        }}
+        fileInputRef={fileInputRef}
+        categories={categories}
+      />
       <EditModal />
       <DeleteModal />
     </motion.div>
