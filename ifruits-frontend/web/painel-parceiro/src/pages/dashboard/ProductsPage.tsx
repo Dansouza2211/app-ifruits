@@ -358,6 +358,42 @@ const EditModal = ({
   );
 };
 
+const DeleteModal = ({ show, product, onClose, onConfirm }) => {
+  if (!show || !product) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <div className="flex items-center justify-center text-red-600 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+
+        <h2 className="text-xl font-bold text-gray-800 text-center mb-2">Excluir Produto</h2>
+        <p className="text-gray-600 text-center mb-6">
+          Tem certeza que deseja excluir o produto <span className="font-semibold">{product.name}</span>? Esta ação não pode ser desfeita.
+        </p>
+
+        <div className="flex justify-center space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ProductsPage = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -616,48 +652,7 @@ const ProductsPage = () => {
     setSelectedProduct(null);
   };
 
-  // Modal de adição
 
-
-  // Modal de edição
-
-
-  // Modal de confirmação de exclusão
-  const DeleteModal = () => {
-    if (!showDeleteModal || !selectedProduct) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-          <div className="flex items-center justify-center text-red-600 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </div>
-
-          <h2 className="text-xl font-bold text-gray-800 text-center mb-2">Excluir Produto</h2>
-          <p className="text-gray-600 text-center mb-6">
-            Tem certeza que deseja excluir o produto <span className="font-semibold">{selectedProduct.name}</span>? Esta ação não pode ser desfeita.
-          </p>
-
-          <div className="flex justify-center space-x-3">
-            <button
-              onClick={() => setShowDeleteModal(false)}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-            >
-              Excluir
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <motion.div
@@ -855,8 +850,13 @@ const ProductsPage = () => {
         }}
         fileInputRef={editFileInputRef}
       />
-      
-      <DeleteModal />
+
+      <DeleteModal
+        show={showDeleteModal}
+        product={selectedProduct}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+      />
     </motion.div>
   );
 };
