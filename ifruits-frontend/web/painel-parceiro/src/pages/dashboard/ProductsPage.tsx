@@ -2,100 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../utils/supabase';
 
-// Dados mockados para produtos
-const mockProducts = [
-  {
-    id: 1,
-    name: 'Banana Prata',
-    image: 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?q=80&w=100&auto=format&fit=crop',
-    category: 'Frutas',
-    price: 5.99,
-    stock: 120,
-    active: true
-  },
-  {
-    id: 2,
-    name: 'Maçã Fuji',
-    image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?q=80&w=100&auto=format&fit=crop',
-    category: 'Frutas',
-    price: 7.49,
-    stock: 95,
-    active: true
-  },
-  {
-    id: 3,
-    name: 'Morango Premium',
-    image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?q=80&w=100&auto=format&fit=crop',
-    category: 'Frutas',
-    price: 8.99,
-    stock: 42,
-    active: true
-  },
-  {
-    id: 4,
-    name: 'Abacate',
-    image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?q=80&w=100&auto=format&fit=crop',
-    category: 'Frutas',
-    price: 6.50,
-    stock: 38,
-    active: true
-  },
-  {
-    id: 5,
-    name: 'Melancia',
-    image: 'https://images.unsplash.com/photo-1589984662646-e7b2e4962f18?q=80&w=100&auto=format&fit=crop',
-    category: 'Frutas',
-    price: 12.90,
-    stock: 15,
-    active: true
-  },
-  {
-    id: 6,
-    name: 'Cenoura Orgânica',
-    image: 'https://images.unsplash.com/photo-1598170845351-a0aea175ef28?q=80&w=100&auto=format&fit=crop',
-    category: 'Legumes',
-    price: 4.50,
-    stock: 75,
-    active: true
-  },
-  {
-    id: 7,
-    name: 'Tomate Italiano',
-    image: 'https://images.unsplash.com/photo-1561136594-7f68413baa99?q=80&w=100&auto=format&fit=crop',
-    category: 'Legumes',
-    price: 5.99,
-    stock: 62,
-    active: false
-  },
-  {
-    id: 8,
-    name: 'Alface Crespa',
-    image: 'https://images.unsplash.com/photo-1556801712-76c8eb07bbc9?q=80&w=100&auto=format&fit=crop',
-    category: 'Verduras',
-    price: 3.49,
-    stock: 50,
-    active: true
-  },
-  {
-    id: 9,
-    name: 'Rúcula Fresca',
-    image: 'https://images.unsplash.com/photo-1588891557811-5f9b25e84359?q=80&w=100&auto=format&fit=crop',
-    category: 'Verduras',
-    price: 4.25,
-    stock: 32,
-    active: true
-  },
-  {
-    id: 10,
-    name: 'Kiwi Importado',
-    image: 'https://images.unsplash.com/photo-1618897996318-5a901fa6ca71?q=80&w=100&auto=format&fit=crop',
-    category: 'Frutas',
-    price: 9.99,
-    stock: 0,
-    active: false
-  }
-];
-
 const AddModal = ({
   show,
   onClose,
@@ -254,7 +160,7 @@ const AddModal = ({
           <div className="flex justify-end space-x-3 pt-4 border-t">
             <button
               type="button"
-              onClick={() => setShowAddModal(false)}
+              onClick={onClose}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
             >
               Cancelar
