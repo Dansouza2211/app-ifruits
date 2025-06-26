@@ -9,6 +9,9 @@
  - Rafael Arruda Queiroz
  - Marcus Vinicius
 
+## Link do Vídeo
+[Apresentação do app Ifruits](https://youtu.be/UuGwB5efwqo?si=UQboKe6l_t6GyvUg)
+
 ## 📱 Visão Geral
 
 O Ifruits é um sistema completo de delivery composto por aplicativos mobile para clientes e entregadores, além de painéis administrativos web para lojistas e administradores gerais.
